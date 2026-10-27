@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" class="theme-lavender">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f3f1fb" />
+    <meta
+      name="description"
+      content="Kariakoo POS — a modern retail point of sale demo for Tanzanian shops, mini-markets and small supermarkets."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>Kariakoo POS — Retail Point of Sale</title>
+    <script>
+      try {
+        var theme = localStorage.getItem("kariakoo.theme");
+        if (theme === "brown" || theme === "dark" || theme === "lavender") {
+          document.documentElement.classList.remove("theme-lavender", "theme-brown", "theme-dark");
+          document.documentElement.classList.add("theme-" + theme);
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme === "dark" ? "dark" : "light";
+        }
+      } catch (error) {
+        /* localStorage can be unavailable in hardened browser contexts. */
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

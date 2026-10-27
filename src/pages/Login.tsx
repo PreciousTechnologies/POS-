@@ -1,0 +1,280 @@
+import { useState, type FormEvent } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import LiquidGlass from "simple-liquid-glass";
+import { LiquidGlassScene } from "simple-liquid-glass/backdrop";
+import {
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  UserRound,
+  Zap,
+} from "lucide-react";
+import { ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { ThemeToggle, useTheme } from "@/lib/theme";
+import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
+import { Field, Input } from "@/components/ui/Input";
+import { BootScreen } from "@/components/ui/States";
+
+const demoAccounts = [
+  { username: "admin", password: "admin123", name: "Amina", role: "Administrator" },
+  { username: "cashier", password: "cashier123", name: "Joseph", role: "Cashier" },
+];
+
+export function LoginPage() {
+  const { user, loading, login } = useAuth();
+  const { theme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (loading) return <BootScreen label="Preparing your counter" />;
+
+  if (user) {
+    const destination = (location.state as { from?: string } | null)?.from ?? "/dashboard";
+    return <Navigate to={destination} replace />;
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    if (!username.trim() || !password) {
+      setError("Enter your username and password.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await login(username.trim(), password);
+      const destination = (location.state as { from?: string } | null)?.from ?? "/dashboard";
+      navigate(destination, { replace: true });
+    } catch (caught) {
+      setError(
+        caught instanceof ApiError
+          ? caught.message
+          : "Could not sign in right now. Check the server and try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const fillDemo = (account: (typeof demoAccounts)[number]) => {
+    setUsername(account.username);
+    setPassword(account.password);
+    setError(null);
+  };
+
+  return (
+    <div className="login-page">
+      <LiquidGlassScene className="login-scene" aria-hidden="true">
+        <div className="login-aurora login-aurora-a animate-drift" />
+        <div className="login-aurora login-aurora-b animate-float" />
+        <div className="login-aurora login-aurora-c animate-drift" />
+        <div className="login-grid" />
+      </LiquidGlassScene>
+
+      <div className="login-content">
+        <section className="login-art">
+          <div className="login-brand">
+            <div className="brand-mark">
+              <Store size={25} strokeWidth={1.6} />
+            </div>
+            <div>
+              <div className="login-brand-name">Kariakoo POS</div>
+              <div className="login-brand-meta">Kariakoo Mini Market · Tanzania</div>
+            </div>
+          </div>
+
+          <h1 className="login-headline">
+            The calm counter for a busy <em>Kariakoo</em> day.
+          </h1>
+          <p className="login-copy">
+            Sell faster, keep stock honest, and close the day with numbers you can trust. One
+            workspace for the counter, the shelves, and the back office.
+          </p>
+
+          <div className="login-bento">
+            <div className="login-mini-card tall">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="login-mini-label">Counter mode</div>
+                  <div className="login-mini-value">Fast by default</div>
+                </div>
+                <div className="kpi-icon">
+                  <Zap size={15} />
+                </div>
+              </div>
+              <div className="login-mini-list">
+                <div className="login-mini-row">
+                  <CheckCircle2 size={12} style={{ color: "var(--success)" }} />
+                  Barcode & product search
+                </div>
+                <div className="login-mini-row">
+                  <CheckCircle2 size={12} style={{ color: "var(--success)" }} />
+                  Cash, mobile money & card
+                </div>
+                <div className="login-mini-row">
+                  <CheckCircle2 size={12} style={{ color: "var(--success)" }} />
+                  Printable receipts
+                </div>
+              </div>
+              <div className="login-mini-bars" aria-hidden="true">
+                {[38, 58, 44, 74, 62, 86, 68, 92, 78].map((height, index) => (
+                  <span key={index} className="login-mini-bar" style={{ height: `${height}%` }} />
+                ))}
+              </div>
+            </div>
+            <div className="login-mini-card">
+              <div className="login-mini-label">Stock-aware</div>
+              <div className="login-mini-value">Live</div>
+              <div className="login-mini-row mt-1">Low-stock signals built in</div>
+            </div>
+            <div className="login-mini-card">
+              <div className="login-mini-label">Role-aware</div>
+              <div className="login-mini-value">2 roles</div>
+              <div className="login-mini-row mt-1">Admin oversight, cashier focus</div>
+            </div>
+          </div>
+        </section>
+
+        <div className="login-card-wrap">
+          <LiquidGlass
+            className="login-glass"
+            material="frosted"
+            radius={32}
+            blur={18}
+            saturation={160}
+            frost={0.22}
+            dispersion={30}
+            displace={6}
+            lightness={theme === "dark" ? 27 : 92}
+            alpha={0.58}
+            border={0.04}
+            glassColor={theme === "dark" ? "rgba(25, 20, 35, 0.5)" : "rgba(255, 255, 255, 0.44)"}
+            borderColor={theme === "dark" ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.72)"}
+            autoTextColor={false}
+            reveal="immediate"
+            quality="standard"
+          >
+            <div className="login-card">
+              <div className="flex items-center justify-between gap-3">
+                <span className="login-kicker">
+                  <ShieldCheck size={12} />
+                  Secure workspace
+                </span>
+                <ThemeToggle />
+              </div>
+
+              <div className="mt-5 flex items-center gap-2 lg:hidden">
+                <div className="brand-mark" style={{ width: 34, height: 34, borderRadius: 11 }}>
+                  <Store size={17} />
+                </div>
+                <div>
+                  <div className="brand-name">Kariakoo POS</div>
+                  <div className="brand-meta">Point of sale</div>
+                </div>
+              </div>
+
+              <h2 className="login-title">Welcome back.</h2>
+              <p className="login-subtitle">Sign in to open the counter and pick up where the day left off.</p>
+
+              <form className="login-form" onSubmit={handleSubmit}>
+                <Field label="Username" htmlFor="username">
+                  <div className="input-icon-wrap">
+                    <UserRound size={15} />
+                    <Input
+                      id="username"
+                      name="username"
+                      placeholder="e.g. admin"
+                      autoComplete="username"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      value={username}
+                      onChange={(event) => setUsername(event.target.value)}
+                      aria-invalid={Boolean(error)}
+                    />
+                  </div>
+                </Field>
+
+                <Field label="Password" htmlFor="password">
+                  <div className="input-icon-wrap">
+                    <LockKeyhole size={15} />
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      className="pr-10"
+                      aria-invalid={Boolean(error)}
+                    />
+                    <button
+                      type="button"
+                      className="login-password-toggle"
+                      onClick={() => setShowPassword((value) => !value)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </Field>
+
+                {error && (
+                  <div className="login-error" role="alert">
+                    <ShieldCheck size={14} className="mt-0.5 shrink-0" />
+                    {error}
+                  </div>
+                )}
+
+                <Button type="submit" loading={submitting} className="login-submit" size="lg">
+                  Open the counter
+                </Button>
+              </form>
+
+              <div className="login-demo">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="login-demo-label">Demo access</div>
+                  <span className="badge badge-neutral">Simulated</span>
+                </div>
+                <div className="login-demo-grid">
+                  {demoAccounts.map((account) => (
+                    <button
+                      key={account.username}
+                      type="button"
+                      className="demo-account"
+                      onClick={() => fillDemo(account)}
+                    >
+                      <Avatar name={account.name} size="sm" />
+                      <span>
+                        <strong>{account.name}</strong>
+                        <span>
+                          {account.role} · {account.username}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <p className="login-footnote">
+                <Sparkles size={10} className="mr-1 inline" />
+                Demo environment · mobile money and card payments are simulated. No real money moves.
+              </p>
+            </div>
+          </LiquidGlass>
+        </div>
+      </div>
+    </div>
+  );
+}
