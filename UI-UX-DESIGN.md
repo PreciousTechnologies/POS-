@@ -249,8 +249,8 @@ Money and quantities use `.numeric` to keep columns aligned. Currency is always 
   product name as a title.
 - **Hero decoration:** a 32px grid pattern masked to fade to the right, layered over radial primary
   and accent washes in the dashboard hero.
-- **Login art:** three aurora orbs with `animate-drift` / `animate-float`, a radial-masked grid, a
-  glass counter-preview card, a four-tile feature grid, and an Admin/Cashier role card.
+- **Login art:** three aurora orbs with `animate-drift` / `animate-float`, a radial-masked grid, and a
+  bento of three glass mini-cards (counter mode, stock-aware, role-aware) with a tiny bar chart.
 
 ---
 
@@ -481,13 +481,8 @@ never wrapped (`white-space: nowrap`).
   "Sign in to the counter" CTA, then the card slides in (`.is-login-step`) with a back button to the
   landing. The CTA scrolls to the top and focuses the username field; back restores focus to the CTA.
 - Background: three drifting aurora orbs, a radial-masked grid, and the global grain.
-- Left column, top to bottom: brand mark, "The calm counter for a busy Kariakoo day.", supporting
-  copy, a **counter preview** glass card (sample 3-line sale, total, payment chips, barcode/receipt/
-  stock status), a "What's inside" four-tile feature grid (scan/search, payments, live stock,
-  reporting), a two-column **Admin vs Cashier** role card, a trust strip (role-aware sessions,
-  thermal receipts, demo data), and a demo/environment note.
-- On ≤1023px the landing adds a primary "Sign in to the counter" CTA directly under the hero copy
-  and a second CTA after the trust note, so signing in never requires scrolling back to the top.
+- Left column: brand mark, "The calm counter for a busy Kariakoo day.", supporting copy, and a bento
+  of three mini glass cards with a micro bar chart.
 - Right column: a `simple-liquid-glass` frosted panel containing a "Secure workspace" kicker, theme
   toggle, mobile brand, "Welcome back.", username/password fields with icons, show/hide password,
   inline error, and a full-width "Open the counter" button.
