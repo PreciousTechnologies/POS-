@@ -5,15 +5,19 @@ import { LiquidGlassScene } from "simple-liquid-glass/backdrop";
 import {
   ArrowLeft,
   ArrowRight,
-  CheckCircle2,
+  BarChart3,
+  Boxes,
   Eye,
   EyeOff,
   LockKeyhole,
+  Printer,
+  ScanBarcode,
   ShieldCheck,
   Sparkles,
   Store,
   UserRound,
-  Zap,
+  Users,
+  Wallet,
 } from "lucide-react";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -127,49 +131,6 @@ export function LoginPage() {
             workspace for the counter, the shelves, and the back office.
           </p>
 
-          <div className="login-bento">
-            <div className="login-mini-card tall">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="login-mini-label">Counter mode</div>
-                  <div className="login-mini-value">Fast by default</div>
-                </div>
-                <div className="kpi-icon">
-                  <Zap size={15} />
-                </div>
-              </div>
-              <div className="login-mini-list">
-                <div className="login-mini-row">
-                  <CheckCircle2 size={12} style={{ color: "var(--success)" }} />
-                  Barcode & product search
-                </div>
-                <div className="login-mini-row">
-                  <CheckCircle2 size={12} style={{ color: "var(--success)" }} />
-                  Cash, mobile money & card
-                </div>
-                <div className="login-mini-row">
-                  <CheckCircle2 size={12} style={{ color: "var(--success)" }} />
-                  Printable receipts
-                </div>
-              </div>
-              <div className="login-mini-bars" aria-hidden="true">
-                {[38, 58, 44, 74, 62, 86, 68, 92, 78].map((height, index) => (
-                  <span key={index} className="login-mini-bar" style={{ height: `${height}%` }} />
-                ))}
-              </div>
-            </div>
-            <div className="login-mini-card">
-              <div className="login-mini-label">Stock-aware</div>
-              <div className="login-mini-value">Live</div>
-              <div className="login-mini-row mt-1">Low-stock signals built in</div>
-            </div>
-            <div className="login-mini-card">
-              <div className="login-mini-label">Role-aware</div>
-              <div className="login-mini-value">2 roles</div>
-              <div className="login-mini-row mt-1">Admin oversight, cashier focus</div>
-            </div>
-          </div>
-
           <div className="login-mobile-cta">
             <Button
               ref={signInRef}
@@ -179,7 +140,147 @@ export function LoginPage() {
             >
               Sign in to the counter
             </Button>
-            <p className="login-mobile-note">Demo accounts are ready on the next screen.</p>
+            <p className="login-mobile-note">One-tap demo accounts are on the next screen.</p>
+          </div>
+
+          <div className="login-preview">
+            <div className="login-preview-head">
+              <span className="login-mini-label">Counter preview</span>
+              <span className="badge badge-neutral">Sample sale</span>
+            </div>
+            <div className="login-preview-lines">
+              <div className="login-preview-line">
+                <span>
+                  Jasmine rice 5kg <small>× 1</small>
+                </span>
+                <strong>TZS 14,500</strong>
+              </div>
+              <div className="login-preview-line">
+                <span>
+                  Sunflower oil 1L <small>× 2</small>
+                </span>
+                <strong>TZS 7,000</strong>
+              </div>
+              <div className="login-preview-line">
+                <span>
+                  Fresh bread <small>× 3</small>
+                </span>
+                <strong>TZS 3,600</strong>
+              </div>
+            </div>
+            <div className="login-preview-total">
+              <span>
+                Total <small>3 lines · 6 units</small>
+              </span>
+              <strong>TZS 25,100</strong>
+            </div>
+            <div className="login-preview-pay" role="group" aria-label="Sample payment options">
+              <span className="is-active">Cash</span>
+              <span>Mobile money</span>
+              <span>Card</span>
+            </div>
+            <div className="login-preview-foot">
+              <span>
+                <ScanBarcode size={11} /> Barcode ready
+              </span>
+              <span>
+                <Printer size={11} /> 80mm receipt
+              </span>
+              <span>
+                <ShieldCheck size={11} /> Stock updated
+              </span>
+            </div>
+          </div>
+
+          <div className="login-section-label">What&rsquo;s inside</div>
+          <div className="login-features">
+            <div className="login-feature">
+              <div className="login-feature-icon">
+                <ScanBarcode size={14} />
+              </div>
+              <div>
+                <div className="login-feature-title">Scan or search</div>
+                <p>Barcode, name, or SKU. Keep the queue moving.</p>
+              </div>
+            </div>
+            <div className="login-feature">
+              <div className="login-feature-icon">
+                <Wallet size={14} />
+              </div>
+              <div>
+                <div className="login-feature-title">Take any payment</div>
+                <p>Cash, mobile money, and card in one flow.</p>
+              </div>
+            </div>
+            <div className="login-feature">
+              <div className="login-feature-icon">
+                <Boxes size={14} />
+              </div>
+              <div>
+                <div className="login-feature-title">Stock that stays true</div>
+                <p>Live levels and low-stock flags on every sale.</p>
+              </div>
+            </div>
+            <div className="login-feature">
+              <div className="login-feature-icon">
+                <BarChart3 size={14} />
+              </div>
+              <div>
+                <div className="login-feature-title">Close with clarity</div>
+                <p>Shift totals, margin, and a clean audit trail.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="login-role-card">
+            <div className="login-role-head">
+              <span className="login-mini-label">One workspace, two views</span>
+              <span className="badge badge-neutral">2 roles</span>
+            </div>
+            <div className="login-role-grid">
+              <div>
+                <div className="login-role-title">
+                  <ShieldCheck size={12} /> Admin
+                </div>
+                <ul className="login-role-list">
+                  <li>Sales, profit, and reports</li>
+                  <li>Refunds, voids, and audit</li>
+                  <li>Team, products, settings</li>
+                </ul>
+              </div>
+              <div>
+                <div className="login-role-title">
+                  <Users size={12} /> Cashier
+                </div>
+                <ul className="login-role-list">
+                  <li>Fast counter checkout</li>
+                  <li>Own sales and shift totals</li>
+                  <li>Guided discount limits</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="login-trust">
+            <span>
+              <ShieldCheck size={12} /> Role-aware sessions
+            </span>
+            <span>
+              <Printer size={12} /> Thermal receipts
+            </span>
+            <span>
+              <Sparkles size={12} /> Demo data
+            </span>
+          </div>
+          <p className="login-landing-note">
+            Kariakoo Mini Market · Dar es Salaam · Demo environment, no real money moves.
+          </p>
+
+          <div className="login-mobile-cta login-mobile-cta-end">
+            <Button size="lg" onClick={handleShowLogin} rightIcon={<ArrowRight size={15} />}>
+              Sign in to the counter
+            </Button>
+            <p className="login-mobile-note">Admin and cashier demo accounts are included.</p>
           </div>
         </section>
 
