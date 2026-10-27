@@ -41,6 +41,7 @@ export function BarcodeScanner({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const detectorRef = useRef<BarcodeDetectorLike | null>(null);
+  const zxingRef = useRef<{ stop: () => void } | null>(null);
   const frameRef = useRef<number | null>(null);
   const busyRef = useRef(false);
   const lastScanRef = useRef<{ code: string; at: number } | null>(null);
@@ -61,6 +62,8 @@ export function BarcodeScanner({
       cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
     }
+    zxingRef.current?.stop();
+    zxingRef.current = null;
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     detectorRef.current = null;
@@ -102,21 +105,14 @@ export function BarcodeScanner({
     setStatus("starting");
 
     const start = async () => {
-      const Ctor = getDetectorConstructor();
-      if (!Ctor || !navigator.mediaDevices?.getUserMedia) {
+      if (!navigator.mediaDevices?.getUserMedia) {
         if (!cancelled) setStatus("unsupported");
         return;
       }
 
-      try {
-        const available = Ctor.getSupportedFormats ? await Ctor.getSupportedFormats() : FORMATS;
-        const formats = FORMATS.filter((format) => available.includes(format));
-        try {
-          detectorRef.current = new Ctor(formats.length ? { formats } : undefined);
-        } catch {
-          detectorRef.current = new Ctor();
-        }
+      const Ctor = getDetectorConstructor();
 
+      try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: "environment" },
@@ -133,30 +129,68 @@ export function BarcodeScanner({
 
         streamRef.current = stream;
         const video = videoRef.current;
-        if (!video) return;
-        video.srcObject = stream;
-        await video.play().catch(() => undefined);
-        if (cancelled) return;
-        setStatus("scanning");
+        if (!video) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
 
-        let lastTick = 0;
-        const tick = async (time: number) => {
-          if (cancelled || !detectorRef.current || !videoRef.current) return;
-          if (time - lastTick >= 220) {
-            lastTick = time;
-            if (videoRef.current.readyState >= 2) {
-              try {
-                const results = await detectorRef.current.detect(videoRef.current);
-                const code = results[0]?.rawValue;
-                if (code) void submitCode(code);
-              } catch {
-                // Ignore frames the detector cannot decode.
+        if (Ctor) {
+          try {
+            const available = Ctor.getSupportedFormats ? await Ctor.getSupportedFormats() : FORMATS;
+            const formats = FORMATS.filter((format) => available.includes(format));
+            try {
+              detectorRef.current = new Ctor(formats.length ? { formats } : undefined);
+            } catch {
+              detectorRef.current = new Ctor();
+            }
+          } catch {
+            detectorRef.current = null;
+          }
+        }
+
+        if (detectorRef.current) {
+          video.srcObject = stream;
+          await video.play().catch(() => undefined);
+          if (cancelled) return;
+          setStatus("scanning");
+
+          let lastTick = 0;
+          const tick = async (time: number) => {
+            if (cancelled || !detectorRef.current || !videoRef.current) return;
+            if (time - lastTick >= 220) {
+              lastTick = time;
+              if (videoRef.current.readyState >= 2) {
+                try {
+                  const results = await detectorRef.current.detect(videoRef.current);
+                  const code = results[0]?.rawValue;
+                  if (code) void submitCode(code);
+                } catch {
+                  // Ignore frames the detector cannot decode.
+                }
               }
             }
+            if (!cancelled) frameRef.current = requestAnimationFrame((next) => void tick(next));
+          };
+          frameRef.current = requestAnimationFrame((time) => void tick(time));
+        } else {
+          // Firefox, Safari and some desktop browsers lack the native
+          // BarcodeDetector API, so decode frames with ZXing instead.
+          const { BrowserMultiFormatReader } = await import("@zxing/browser");
+          if (cancelled) return;
+          const reader = new BrowserMultiFormatReader(undefined, {
+            delayBetweenScanAttempts: 250,
+            delayBetweenScanSuccess: 800,
+          });
+          const controls = await reader.decodeFromStream(stream, video, (result) => {
+            if (result) void submitCode(result.getText());
+          });
+          if (cancelled) {
+            controls.stop();
+            return;
           }
-          if (!cancelled) frameRef.current = requestAnimationFrame((next) => void tick(next));
-        };
-        frameRef.current = requestAnimationFrame((time) => void tick(time));
+          zxingRef.current = controls;
+          setStatus("scanning");
+        }
       } catch (error) {
         if (cancelled) return;
         const name = error instanceof DOMException ? error.name : "";
@@ -201,7 +235,7 @@ export function BarcodeScanner({
               )}
               <span>
                 {status === "unsupported"
-                  ? "Camera scanning isn't supported on this browser."
+                  ? "Camera access isn't available in this browser."
                   : status === "denied"
                     ? "Camera permission is blocked."
                     : status === "error"
