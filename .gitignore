@@ -5,6 +5,7 @@ data/*.db-shm
 data/*.db-wal
 data/session.secret
 data/*.pid
+server/session-secret.js
 .env
 .env.local
 *.log

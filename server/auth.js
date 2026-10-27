@@ -3,15 +3,15 @@ import crypto from "node:crypto";
 import { db } from "./db.js";
 import { SECRET_PATH } from "./paths.js";
 import { httpError } from "./http.js";
+import { GENERATED_SESSION_SECRET } from "./session-secret.js";
 
 function loadSecret() {
   if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  if (GENERATED_SESSION_SECRET) return GENERATED_SESSION_SECRET;
   if (process.env.VERCEL) {
     console.warn(
-      "[auth] SESSION_SECRET is not set. Each serverless instance generates its own " +
-        "secret and writes it to /tmp, so tokens signed by one instance are rejected " +
-        "by another and users get signed out. Set SESSION_SECRET in the project's " +
-        "environment variables.",
+      "[auth] No SESSION_SECRET or generated secret was found. Each serverless " +
+        "instance will generate its own secret and users may be signed out.",
     );
   }
   try {

@@ -29,13 +29,13 @@ This repo deploys as one Vercel project: Vite builds the SPA to `dist/` and `api
 
 1. Import the repository at [vercel.com/new](https://vercel.com/new), or deploy from the CLI: `npx vercel` (preview) then `npx vercel --prod`.
 2. Keep the detected **Vite** framework preset — no build settings need to be changed.
-3. Add one environment variable under **Project → Settings → Environment Variables**:
+3. Optionally add one environment variable under **Project → Settings → Environment Variables**:
 
    | Name | Value |
    | --- | --- |
    | `SESSION_SECRET` | Random string, e.g. `node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"` |
 
-   Without it the server generates a secret per function instance, so sessions break whenever an instance is recycled.
+   If it is absent, `npm run build` generates one secret for the whole deployment (`scripts/generate-session-secret.mjs`), so all function instances share it. Setting `SESSION_SECRET` is still recommended because it also keeps sessions valid across deployments.
 
 No API URL has to be configured: the client calls same-origin `/api`, which `vercel.json` routes to the function.
 

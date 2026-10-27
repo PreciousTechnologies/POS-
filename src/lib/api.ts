@@ -77,7 +77,9 @@ function authHeaders() {
   return headers;
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+type RequestOptions = { silentAuth?: boolean };
+
+async function request<T>(path: string, init: RequestInit = {}, options: RequestOptions = {}): Promise<T> {
   const headers = authHeaders();
   new Headers(init.headers).forEach((value, key) => headers.set(key, value));
   if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
@@ -92,7 +94,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
 
   if (!response.ok) {
-    if (response.status === 401 && path !== "/auth/login") {
+    if (response.status === 401 && path !== "/auth/login" && !options.silentAuth) {
       window.dispatchEvent(new Event("kariakoo:unauthorized"));
     }
     throw await parseError(response);
@@ -110,12 +112,12 @@ export const api = {
   auth: {
     login: (username: string, password: string) =>
       request<{ token: string; user: User }>("/auth/login", { method: "POST", ...jsonBody({ username, password }) }),
-    me: () => request<{ user: User }>("/auth/me"),
+    me: () => request<{ user: User }>("/auth/me", {}, { silentAuth: true }),
     logout: () => request<{ ok: boolean }>("/auth/logout", { method: "POST" }),
   },
 
   settings: {
-    get: () => request<Settings>("/settings"),
+    get: (silentAuth = false) => request<Settings>("/settings", {}, { silentAuth }),
     update: (data: SettingsInput) => request<Settings>("/settings", { method: "PUT", ...jsonBody(data) }),
   },
 

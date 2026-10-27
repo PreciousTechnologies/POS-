@@ -8,10 +8,14 @@
     "node": "24.x"
   },
   "scripts": {
+    "postinstall": "node scripts/generate-session-secret.mjs",
+    "predev": "node scripts/generate-session-secret.mjs",
     "dev": "concurrently -k -n API,WEB -c yellow,cyan \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "node --watch server/index.js",
     "dev:web": "vite",
+    "prebuild": "node scripts/generate-session-secret.mjs",
     "build": "tsc --noEmit && vite build",
+    "prestart": "node scripts/generate-session-secret.mjs",
     "start": "node server/index.js",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"

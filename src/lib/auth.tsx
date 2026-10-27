@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSettings = useCallback(async () => {
     try {
-      const next = await api.settings.get();
+      const next = await api.settings.get(true);
       setSettings(next);
       return next;
     } catch (error) {
