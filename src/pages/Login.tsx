@@ -1,8 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import LiquidGlass from "simple-liquid-glass";
 import { LiquidGlassScene } from "simple-liquid-glass/backdrop";
 import {
+  ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   Eye,
   EyeOff,
@@ -36,6 +38,20 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const signInRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showLogin) return;
+    const timer = window.setTimeout(() => {
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      pageRef.current?.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+      usernameRef.current?.focus({ preventScroll: true });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [showLogin]);
 
   if (loading) return <BootScreen label="Preparing your counter" />;
 
@@ -73,8 +89,17 @@ export function LoginPage() {
     setError(null);
   };
 
+  const handleShowLogin = () => setShowLogin(true);
+
+  const handleShowLanding = () => {
+    setShowLogin(false);
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    pageRef.current?.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    window.setTimeout(() => signInRef.current?.focus(), 80);
+  };
+
   return (
-    <div className="login-page">
+    <div className={`login-page${showLogin ? " is-login-step" : ""}`} ref={pageRef}>
       <LiquidGlassScene className="login-scene" aria-hidden="true">
         <div className="login-aurora login-aurora-a animate-drift" />
         <div className="login-aurora login-aurora-b animate-float" />
@@ -144,6 +169,18 @@ export function LoginPage() {
               <div className="login-mini-row mt-1">Admin oversight, cashier focus</div>
             </div>
           </div>
+
+          <div className="login-mobile-cta">
+            <Button
+              ref={signInRef}
+              size="lg"
+              onClick={handleShowLogin}
+              rightIcon={<ArrowRight size={15} />}
+            >
+              Sign in to the counter
+            </Button>
+            <p className="login-mobile-note">Demo accounts are ready on the next screen.</p>
+          </div>
         </section>
 
         <div className="login-card-wrap">
@@ -167,10 +204,21 @@ export function LoginPage() {
           >
             <div className="login-card">
               <div className="flex items-center justify-between gap-3">
-                <span className="login-kicker">
-                  <ShieldCheck size={12} />
-                  Secure workspace
-                </span>
+                <div className="flex min-w-0 items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="login-mobile-back"
+                    onClick={handleShowLanding}
+                    aria-label="Back to overview"
+                  >
+                    <ArrowLeft size={15} />
+                  </Button>
+                  <span className="login-kicker">
+                    <ShieldCheck size={12} />
+                    Secure workspace
+                  </span>
+                </div>
                 <ThemeToggle />
               </div>
 
@@ -192,6 +240,7 @@ export function LoginPage() {
                   <div className="input-icon-wrap">
                     <UserRound size={15} />
                     <Input
+                      ref={usernameRef}
                       id="username"
                       name="username"
                       placeholder="e.g. admin"

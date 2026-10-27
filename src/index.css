@@ -2396,6 +2396,30 @@ svg {
   text-align: center;
 }
 
+/* Below 1024px the login experience becomes two steps: the brand landing is
+   shown first, then the sign-in card slides in after the CTA is pressed. */
+.login-mobile-cta,
+.login-mobile-back {
+  display: none;
+}
+
+.login-mobile-cta {
+  margin-top: 22px;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.login-mobile-cta .btn {
+  width: 100%;
+}
+
+.login-mobile-note {
+  color: var(--text-soft);
+  font-size: 0.64rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
 /* -------------------------------------------------------------------------- */
 /*  POS                                                                        */
 /* -------------------------------------------------------------------------- */
@@ -3297,6 +3321,17 @@ svg {
   }
 }
 
+@keyframes login-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes float-slow {
   0%,
   100% {
@@ -3495,16 +3530,40 @@ svg {
 
   .login-content {
     grid-template-columns: 1fr;
+    width: 100%;
     max-width: 470px;
     gap: 22px;
   }
 
   .login-art {
+    display: block;
+    max-width: 470px;
+    padding-left: 0;
+    animation: login-panel-in 0.45s var(--ease-out) both;
+  }
+
+  .login-page:not(.is-login-step) .login-card-wrap {
     display: none;
+  }
+
+  .login-page.is-login-step .login-art {
+    display: none;
+  }
+
+  .login-page.is-login-step .login-card-wrap {
+    animation: login-panel-in 0.45s var(--ease-out) both;
   }
 
   .login-card-wrap {
     justify-self: center;
+  }
+
+  .login-mobile-cta {
+    display: flex;
+  }
+
+  .login-mobile-back {
+    display: inline-flex;
   }
 
   .login-page {

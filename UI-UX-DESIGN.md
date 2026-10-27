@@ -299,7 +299,7 @@ Every screen uses the same rhythm:
 | --- | --- |
 | ≥1280px | Fixed sidebar visible; `.desktop-only` shown; 4-column KPI grid; POS cart fixed at 386px |
 | ≤1279px | Sidebar hidden, mobile menu enabled; 2-column KPI; POS cart 340px; tighter top bar/content gutters |
-| ≤1023px | POS becomes single column with a fixed mobile cart bar; 56px top bar; login art hidden; larger quantity steppers |
+| ≤1023px | POS becomes single column with a fixed mobile cart bar; 56px top bar; login becomes a two-step landing → card flow; larger quantity steppers |
 | ≤767px | Page actions go full-width; KPI stays 2 columns but compact; forms become one column; modals become bottom sheets at 92dvh with 24px top radius; product grid minimum 135px; charts 220px; stat rows 2 columns; theme toggle icon-only; range popover left-aligned |
 | ≤479px | KPI 1 column; top-bar context icon hidden; content gutters 10px; product grid fixed at 2 columns; quick-cash 2-up; modal footer stacks; scanner viewport becomes square; range fields 1 column |
 | ≤360px | Theme toggle 31px |
@@ -476,7 +476,10 @@ never wrapped (`white-space: nowrap`).
 ### 9.1 Login (`/login`)
 
 - Full-viewport split layout: editorial brand story on the left, glass sign-in card on the right
-  (max 1140px, 1.04/0.96 columns). Below 1024px the art column is removed and the card centers.
+  (max 1140px, 1.04/0.96 columns).
+- Below 1024px the experience becomes two steps: the brand story lands first with a full-width
+  "Sign in to the counter" CTA, then the card slides in (`.is-login-step`) with a back button to the
+  landing. The CTA scrolls to the top and focuses the username field; back restores focus to the CTA.
 - Background: three drifting aurora orbs, a radial-masked grid, and the global grain.
 - Left column: brand mark, "The calm counter for a busy Kariakoo day.", supporting copy, and a bento
   of three mini glass cards with a micro bar chart.
