@@ -5,6 +5,7 @@ import {
   Pencil,
   Plus,
   Power,
+  ScanBarcode,
   Search,
   SlidersHorizontal,
   X,
@@ -14,6 +15,7 @@ import { useAuth } from "@/lib/auth";
 import type { Category, Product, ProductInput } from "@/lib/types";
 import { cn, formatTZS, useDebouncedValue } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { BarcodeScanner } from "@/components/ui/BarcodeScanner";
 import { Button } from "@/components/ui/Button";
 import { Badge, StockBadge } from "@/components/ui/Badge";
 import { Field, Input, Select, Textarea } from "@/components/ui/Input";
@@ -78,6 +80,7 @@ export function ProductsPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [scanBarcodeOpen, setScanBarcodeOpen] = useState(false);
 
   const [deactivatingProduct, setDeactivatingProduct] = useState<Product | null>(null);
   const [deactivating, setDeactivating] = useState(false);
@@ -530,13 +533,25 @@ export function ProductsPage() {
             />
           </Field>
           <Field label="Barcode" htmlFor="product-barcode" hint="Optional" error={fieldErrors.barcode}>
-            <Input
-              id="product-barcode"
-              value={form.barcode}
-              onChange={(event) => setForm((current) => ({ ...current, barcode: event.target.value }))}
-              placeholder="Scan or type barcode"
-              maxLength={40}
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                id="product-barcode"
+                value={form.barcode}
+                onChange={(event) => setForm((current) => ({ ...current, barcode: event.target.value }))}
+                placeholder="Scan or type barcode"
+                maxLength={40}
+                className="min-w-0 flex-1"
+              />
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => setScanBarcodeOpen(true)}
+                aria-label="Scan barcode with camera"
+                title="Scan barcode with camera"
+              >
+                <ScanBarcode size={15} />
+              </Button>
+            </div>
           </Field>
           <Field label="Category" htmlFor="product-category" error={fieldErrors.categoryId} required>
             <Select
@@ -645,6 +660,18 @@ export function ProductsPage() {
           )}
         </div>
       </Modal>
+
+      <BarcodeScanner
+        open={scanBarcodeOpen}
+        onClose={() => setScanBarcodeOpen(false)}
+        onDetected={(code) => {
+          setForm((current) => ({ ...current, barcode: code }));
+          setScanBarcodeOpen(false);
+          return true;
+        }}
+        title="Scan product barcode"
+        description="Point the camera at the product barcode to fill the Barcode field."
+      />
 
       <ConfirmDialog
         open={Boolean(deactivatingProduct)}

@@ -154,6 +154,7 @@ function SidebarContent({
           <br />
           <span style={{ color: "var(--text-soft)" }}>{settings.timezone.replaceAll("_", " ")}</span>
         </div>
+        <ThemeToggle className="sidebar-theme" />
         <Button
           variant="ghost"
           size="sm"
@@ -288,7 +289,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   New sale
                 </Button>
               )}
-              <ThemeToggle className="hidden md:flex" />
+              <ThemeToggle />
               <div className="mx-1 hidden h-7 w-px sm:block" style={{ background: "var(--border)" }} />
               <div className="flex items-center gap-2">
                 <Avatar name={user?.name} size="sm" />

@@ -27,6 +27,7 @@ import {
   useDebouncedValue,
 } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { BarcodeScanner } from "@/components/ui/BarcodeScanner";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Field, Input, Select } from "@/components/ui/Input";
@@ -67,6 +68,7 @@ export function PosPage() {
   const [discount, setDiscount] = useState(0);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [amountReceived, setAmountReceived] = useState(0);
   const [mobileProvider, setMobileProvider] = useState("M-Pesa");
@@ -139,16 +141,16 @@ export function PosPage() {
     void loadProducts(1, false);
   }, [loadProducts, reloadKey]);
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product): boolean => {
     if (product.stock <= 0) {
       toast.error(`${product.name} is out of stock.`);
-      return;
+      return false;
     }
     const existing = cart.find((line) => line.product.id === product.id);
     const nextQty = (existing?.qty ?? 0) + 1;
     if (nextQty > product.stock) {
       toast.warning(`Only ${product.stock} unit${product.stock === 1 ? "" : "s"} of ${product.name} available.`);
-      return;
+      return false;
     }
     if (existing) {
       setCart((current) =>
@@ -156,6 +158,28 @@ export function PosPage() {
       );
     } else {
       setCart((current) => [...current, { product, qty: 1 }]);
+    }
+    return true;
+  };
+
+  const addByBarcode = async (raw: string): Promise<boolean> => {
+    const code = raw.trim();
+    if (!code) return false;
+    try {
+      const result = await api.products.list({
+        barcode: code,
+        pageSize: 5,
+        status: isAdmin ? "active" : undefined,
+      });
+      if (result.items.length !== 1) return false;
+      const product = result.items[0];
+      if (!addToCart(product)) return false;
+      setSearch("");
+      toast.success(`${product.name} added.`);
+      return true;
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : "Barcode lookup failed.");
+      return false;
     }
   };
 
@@ -487,11 +511,12 @@ export function PosPage() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => void handleBarcodeOrSearch({ key: "Enter", preventDefault: () => {} } as KeyboardEvent<HTMLInputElement>)}
+              onClick={() => setScanOpen(true)}
               leftIcon={<ScanBarcode size={14} />}
-              className="hidden sm:inline-flex"
+              aria-label="Scan barcode with camera"
+              title="Scan barcode with camera"
             >
-              Scan
+              <span className="hidden sm:inline">Scan</span>
             </Button>
           </div>
 
@@ -745,6 +770,12 @@ export function PosPage() {
           onClose={() => setReceiptOpen(false)}
           sale={lastSale}
           settings={settings}
+        />
+
+        <BarcodeScanner
+          open={scanOpen}
+          onClose={() => setScanOpen(false)}
+          onDetected={addByBarcode}
         />
       </div>
 

@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Coffee, Moon, Sparkles, type LucideIcon } from "lucide-react";
 import { cn } from "./utils";
 
@@ -66,24 +67,46 @@ export function useTheme() {
   return context;
 }
 
-export function ThemeToggle({ className, labels = false }: { className?: string; labels?: boolean }) {
-  const { theme, setTheme } = useTheme();
+export function ThemeToggle({ className }: { className?: string }) {
+  const { theme, setTheme, themes } = useTheme();
+  const reduceMotion = useReducedMotion();
+  const index = Math.max(0, themes.findIndex((entry) => entry.id === theme));
+  const current = themes[index] ?? themes[0];
+  const next = themes[(index + 1) % themes.length];
+  const Icon = current.Icon;
+
   return (
-    <div className={cn("theme-switch", className)} role="group" aria-label="Color theme">
-      {THEMES.map(({ id, label, short, Icon }) => (
-        <button
-          key={id}
-          type="button"
-          className={cn("theme-switch-option", theme === id && "is-active")}
-          onClick={() => setTheme(id)}
-          aria-label={`Use ${label}`}
-          aria-pressed={theme === id}
-          title={label}
-        >
-          <Icon size={15} strokeWidth={1.8} />
-          {labels && <span>{short}</span>}
-        </button>
-      ))}
-    </div>
+    <button
+      type="button"
+      className={cn("theme-toggle", className)}
+      onClick={() => setTheme(next.id)}
+      aria-label={`Theme: ${current.label}. Switch to ${next.label}.`}
+      title={`${current.label} — click for ${next.label}`}
+      data-theme={theme}
+    >
+      <span className="theme-toggle-icon" aria-hidden="true">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={theme}
+            className="theme-toggle-glyph"
+            initial={reduceMotion ? false : { rotate: -90, scale: 0.4, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={reduceMotion ? { opacity: 0 } : { rotate: 90, scale: 0.4, opacity: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Icon size={16} strokeWidth={1.8} />
+          </motion.span>
+        </AnimatePresence>
+      </span>
+      <span className="theme-toggle-label">{current.short}</span>
+      <span className="theme-toggle-dots" aria-hidden="true">
+        {themes.map((entry) => (
+          <span
+            key={entry.id}
+            className={cn("theme-toggle-dot", entry.id === theme && "is-active")}
+          />
+        ))}
+      </span>
+    </button>
   );
 }

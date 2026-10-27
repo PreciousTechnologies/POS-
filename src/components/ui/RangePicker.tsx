@@ -63,26 +63,29 @@ export function RangePicker({
           </button>
         ))}
       </div>
-      <div className="relative">
+      <div className="range-picker-anchor">
         <button
           type="button"
-          className="btn btn-secondary btn-sm"
+          className="btn btn-secondary btn-sm range-picker-trigger"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-haspopup="dialog"
         >
-          <CalendarDays size={13} />
-          <span className="max-w-[210px] truncate">{formatRangeLabel({ from, to }, timezone)}</span>
-          <ChevronDown size={12} className={cn("transition-transform", open && "rotate-180")} />
+          <CalendarDays size={13} className="shrink-0" />
+          <span className="range-picker-label">{formatRangeLabel({ from, to }, timezone)}</span>
+          <ChevronDown
+            size={12}
+            className={cn("shrink-0 transition-transform", open && "rotate-180")}
+          />
         </button>
         {open && (
           <div
-            className="surface-card absolute right-0 top-full z-30 mt-2 w-[260px] p-3 shadow-lg"
+            className="surface-card range-popover"
             role="dialog"
             aria-label="Custom date range"
           >
             <div className="eyebrow mb-2">Custom range</div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="range-popover-fields">
               <label className="field">
                 <span className="field-label">From</span>
                 <input
