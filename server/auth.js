@@ -6,6 +6,14 @@ import { httpError } from "./http.js";
 
 function loadSecret() {
   if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  if (process.env.VERCEL) {
+    console.warn(
+      "[auth] SESSION_SECRET is not set. Each serverless instance generates its own " +
+        "secret and writes it to /tmp, so tokens signed by one instance are rejected " +
+        "by another and users get signed out. Set SESSION_SECRET in the project's " +
+        "environment variables.",
+    );
+  }
   try {
     const existing = fs.readFileSync(SECRET_PATH, "utf8").trim();
     if (existing) return existing;

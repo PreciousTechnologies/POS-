@@ -44,7 +44,7 @@ No API URL has to be configured: the client calls same-origin `/api`, which `ver
 Vercel Functions may only write under `/tmp`, so `POS_DATA_DIR` defaults to a temp folder there and the SQLite database is **ephemeral**:
 
 - The demo data is seeded on the first request of each function instance (about a second) and thrown away when that instance is recycled.
-- Writes are visible only to the instance that served them; separate instances do not share a database.
+- Seed IDs are deterministic, so the demo accounts and catalog are identical on every instance. Only new writes (sales, stock changes, new products) stay on the instance that handled them, and separate instances do not share a database.
 
 That is fine for a demo. For durable data, either back the app with a hosted database (Postgres or Turso instead of SQLite) or host the API on a machine with a persistent disk and proxy to it from Vercel:
 

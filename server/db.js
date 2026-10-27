@@ -1,6 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
 import { DB_PATH } from "./paths.js";
-import { randomId, randomToken, hashPassword } from "./security.js";
+import { randomToken, hashPassword } from "./security.js";
 
 export const db = new DatabaseSync(DB_PATH);
 db.exec("PRAGMA journal_mode = WAL");
@@ -379,11 +379,21 @@ function pick(rng, list) {
   return list[Math.floor(rng() * list.length)];
 }
 
+/* Deterministic UUIDv4-shaped id for seeded rows.
+   Serverless platforms seed their own copy of the demo database per instance;
+   fixed ids keep every instance's catalog identical, so a record created or
+   referenced on one instance still resolves on another. */
+let seedIdCounter = 0;
+function seededId() {
+  seedIdCounter += 1;
+  return `00000000-0000-4000-8000-${seedIdCounter.toString(16).padStart(12, "0")}`;
+}
+
 function audit(userId, action, entity, entityId, description, meta, createdAt = nowIso()) {
   db.prepare(
     `INSERT INTO audit_logs (id, user_id, action, entity, entity_id, description, meta, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(randomId(), userId, action, entity, entityId, description, meta ? JSON.stringify(meta) : null, createdAt);
+  ).run(seededId(), userId, action, entity, entityId, description, meta ? JSON.stringify(meta) : null, createdAt);
 }
 
 function seedDatabase() {
@@ -415,10 +425,10 @@ function seedDatabase() {
 
     /* ---------------- users ---------------- */
     const users = [
-      { id: randomId(), username: "admin", name: "Amina Mwakyusa", email: "amina@kariakoominimarket.co.tz", role: "admin", active: 1, password: "admin123" },
-      { id: randomId(), username: "cashier", name: "Joseph Mtei", email: "joseph@kariakoominimarket.co.tz", role: "cashier", active: 1, password: "cashier123" },
-      { id: randomId(), username: "neema", name: "Neema Kessy", email: "neema@kariakoominimarket.co.tz", role: "cashier", active: 1, password: "cashier123" },
-      { id: randomId(), username: "grace", name: "Grace Mushi", email: "grace@kariakoominimarket.co.tz", role: "cashier", active: 0, password: "cashier123" },
+      { id: seededId(), username: "admin", name: "Amina Mwakyusa", email: "amina@kariakoominimarket.co.tz", role: "admin", active: 1, password: "admin123" },
+      { id: seededId(), username: "cashier", name: "Joseph Mtei", email: "joseph@kariakoominimarket.co.tz", role: "cashier", active: 1, password: "cashier123" },
+      { id: seededId(), username: "neema", name: "Neema Kessy", email: "neema@kariakoominimarket.co.tz", role: "cashier", active: 1, password: "cashier123" },
+      { id: seededId(), username: "grace", name: "Grace Mushi", email: "grace@kariakoominimarket.co.tz", role: "cashier", active: 0, password: "cashier123" },
     ];
     const insertUser = db.prepare(
       `INSERT INTO users (id, username, name, email, role, active, password_hash, created_at, updated_at)
@@ -436,7 +446,7 @@ function seedDatabase() {
        VALUES (?, ?, ?, 1, ?, ?)`,
     );
     const categories = CATEGORY_CATALOG.map((c) => {
-      const id = randomId();
+      const id = seededId();
       insertCategory.run(id, c.name, c.description, ts, ts);
       return { ...c, id };
     });
@@ -462,7 +472,7 @@ function seedDatabase() {
             const stock = 18 + Math.floor(rng() * 210);
             const minStock = 5 + (counter % 4) * 5;
             const product = {
-              id: randomId(),
+              id: seededId(),
               sku: `SKU-${String(counter).padStart(5, "0")}`,
               barcode: `629${String(counter).padStart(10, "0")}`,
               name: `${brand} ${itemName} ${unit}${variant.suffix ? ` · ${variant.suffix}` : ""}`,
@@ -575,7 +585,7 @@ function seedDatabase() {
 
         refCounter += 1;
         const ref = `POS-${date.replaceAll("-", "")}-${String(refCounter).padStart(4, "0")}`;
-        const saleId = randomId();
+        const saleId = seededId();
         const provider = isCash ? null : method === "mobile_money" ? pick(rng, mobileProviders) : "Card terminal";
         const paymentRef = isCash ? null : `SIM-${provider.replaceAll(" ", "").toUpperCase()}-${randomToken(3)}`;
 
@@ -600,7 +610,7 @@ function seedDatabase() {
         lines.forEach((line, index) => {
           const lineTotal = line.product.price * line.qty;
           insertSaleItem.run(
-            randomId(),
+            seededId(),
             saleId,
             line.product.id,
             line.product.name,
@@ -612,7 +622,7 @@ function seedDatabase() {
           );
           updateStock.run(line.product.stock, line.product.id);
           insertMovement.run(
-            randomId(),
+            seededId(),
             line.product.id,
             -line.qty,
             "sale",
@@ -624,7 +634,7 @@ function seedDatabase() {
         });
 
         insertPayment.run(
-          randomId(),
+          seededId(),
           saleId,
           method,
           total,
@@ -646,7 +656,7 @@ function seedDatabase() {
       db.prepare(`UPDATE payments SET status = 'voided' WHERE sale_id = ?`).run(sale.id);
       for (const line of sale.lines) {
         db.prepare(`UPDATE products SET stock = stock + ? WHERE id = ?`).run(line.qty, line.product.id);
-        insertMovement.run(randomId(), line.product.id, line.qty, "void", "Voided sale — stock restored", sale.ref, users[0].id, voidedAt);
+        insertMovement.run(seededId(), line.product.id, line.qty, "void", "Voided sale — stock restored", sale.ref, users[0].id, voidedAt);
       }
       audit(users[0].id, "sale.void", "sale", sale.id, `Voided sale ${sale.ref} and restored stock`, { ref: sale.ref }, voidedAt);
       sale.status = "voided";
@@ -665,7 +675,7 @@ function seedDatabase() {
         `INSERT INTO refunds (id, sale_id, amount, cost_amount, reason, restock, user_id, business_date, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       ).run(
-        randomId(),
+        seededId(),
         sale.id,
         amount,
         costAmount,
@@ -683,7 +693,7 @@ function seedDatabase() {
       if (full) {
         for (const line of sale.lines) {
           db.prepare(`UPDATE products SET stock = stock + ? WHERE id = ?`).run(line.qty, line.product.id);
-          insertMovement.run(randomId(), line.product.id, line.qty, "return", "Full refund — stock restored", sale.ref, users[0].id, refundedAt);
+          insertMovement.run(seededId(), line.product.id, line.qty, "return", "Full refund — stock restored", sale.ref, users[0].id, refundedAt);
         }
       }
       audit(users[0].id, "sale.refund", "sale", sale.id, `${full ? "Full" : "Partial"} refund of TZS ${amount.toLocaleString()} on ${sale.ref}`, { amount, full }, refundedAt);
@@ -698,7 +708,7 @@ function seedDatabase() {
       const next = i < 38 ? 0 : Math.max(1, Math.min(product.minStock - 1, 1 + (i % 4)));
       const delta = next - current;
       adjustProduct.run(next, ts, product.id);
-      insertMovement.run(randomId(), product.id, delta, "adjustment", "Stock count correction — demo seed", null, users[0].id, ts);
+      insertMovement.run(seededId(), product.id, delta, "adjustment", "Stock count correction — demo seed", null, users[0].id, ts);
       product.stock = next;
     }
     audit(users[0].id, "inventory.adjust", "product", null, "Recorded demo stock corrections for low-stock alerts", { count: 16 }, nowIso(new Date(Date.now() - 20 * 3600 * 1000)));
