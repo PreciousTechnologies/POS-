@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "description": "Retail Point of Sale demo for Tanzanian mini-markets — HEAVEN TECH SOFTWARES",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "concurrently -k -n API,WEB -c yellow,cyan \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "node --watch server/index.js",

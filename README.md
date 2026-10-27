@@ -23,6 +23,35 @@ npm run dev
 
 The SQLite database is created automatically at `data/pos.db` on first run. Runtime data, logs, and the session secret are not committed.
 
+## Deploy to Vercel
+
+This repo deploys as one Vercel project: Vite builds the SPA to `dist/` and `api/index.js` exposes the Express API as a single serverless function. `vercel.json` pins the framework preset, build command, output directory, and routing.
+
+1. Import the repository at [vercel.com/new](https://vercel.com/new), or deploy from the CLI: `npx vercel` (preview) then `npx vercel --prod`.
+2. Keep the detected **Vite** framework preset — no build settings need to be changed.
+3. Add one environment variable under **Project → Settings → Environment Variables**:
+
+   | Name | Value |
+   | --- | --- |
+   | `SESSION_SECRET` | Random string, e.g. `node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"` |
+
+   Without it the server generates a secret per function instance, so sessions break whenever an instance is recycled.
+
+No API URL has to be configured: the client calls same-origin `/api`, which `vercel.json` routes to the function.
+
+### Serverless caveats
+
+Vercel Functions may only write under `/tmp`, so `POS_DATA_DIR` defaults to a temp folder there and the SQLite database is **ephemeral**:
+
+- The demo data is seeded on the first request of each function instance (about a second) and thrown away when that instance is recycled.
+- Writes are visible only to the instance that served them; separate instances do not share a database.
+
+That is fine for a demo. For durable data, either back the app with a hosted database (Postgres or Turso instead of SQLite) or host the API on a machine with a persistent disk and proxy to it from Vercel:
+
+```json
+{ "rewrites": [{ "source": "/api/:path*", "destination": "https://your-api.example.com/:path*" }] }
+```
+
 ## Demo accounts
 
 | Role | Username | Password |
